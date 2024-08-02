@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
 var sequelize = new Sequelize('ssatsavia', 'ssatsavia_owner', 'k8ONvJWZD6Sa', {
+    dialectModule: require("pg"),
     host: 'ep-royal-star-a5el2rco.us-east-2.aws.neon.tech',
     dialect: 'postgres',
     port: 5432,
@@ -8,6 +9,7 @@ var sequelize = new Sequelize('ssatsavia', 'ssatsavia_owner', 'k8ONvJWZD6Sa', {
     },
     query: { raw: true }
 });
+
 
 // Define Item model
 const Item = sequelize.define('Item', {
