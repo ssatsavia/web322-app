@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 Not Found</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            overflow: hidden; /* Prevent scrollbars */
+            position: relative; /* Allow positioning of background image */
+        }
+
+        .container {
+            text-align: center;
+            z-index: 2; /* Ensure container is above the bouncing 404 */
+            position: relative;
+        }
+
+        .row {
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 72px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .home-button {
+            display: inline-block;
+            width: 50px; /* Make the button a bit bigger */
+            height: 50px; /* Make the button a bit bigger */
+            background-color: #8475ba; /* Dot color */
+            border-radius: 50%; /* Make it circular */
+            border: none; /* Remove border */
+            cursor: pointer; /* Pointer cursor on hover */
+            transition: transform 0.3s, opacity 0.3s; /* Smooth transition for explosion */
+            position: relative;
+            margin-bottom: 20px;
+            z-index: 2; /* Ensure button is above the bouncing 404 */
+        }
+
+        .home-button:hover {
+            background-color: #2f2c44; /* Darker shade on hover */
+        }
+
+        .home-button.explode {
+            transform: scale(10); /* Scale up the button */
+            opacity: 0; /* Fade out */
+        }
+
+        .legendary-text {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #644d70;
+            z-index: 2; /* Ensure text is above the bouncing 404 */
+            position: relative;
+        }
+
+        .arrow {
+            display: block;
+            margin: 0 auto;
+            width: 0; 
+            height: 0; 
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 15px solid #644d70; /* Arrow color */
+            margin-top: 10px;
+            z-index: 2; /* Ensure arrow is above the bouncing 404 */
+            position: relative;
+        }
+
+        .bouncing-404 {
+            position: absolute;
+            font-size: 200px;
+            font-weight: bold;
+            color: rgba(81, 84, 109, 0.1); /* Semi-transparent color */
+            animation: bounce 10s infinite;
+            z-index: 1; /* Ensure it is behind other content */
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                top: 0;
+                left: 0;
+            }
+            25% {
+                top: 0;
+                left: 100%;
+            }
+            50% {
+                top: 100%;
+                left: 100%;
+            }
+            75% {
+                top: 100%;
+                left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bouncing-404">404</div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <h1><strong>OH NO!</strong></h1>
+                <h2>You encountered a rare 404</h2>
+                <p>You must click the legendary button to go back to the main menu</p>
+                <p>(we can't do it..so it's up to you now!)</p>
+            </div>
+        </div>
+        <button class="home-button" onclick="explodeButton()"></button>
+        <div class="arrow"></div>
+        <div class="legendary-text">The Legendary Button</div>
+    </div>
+    
+    <script>
+        function explodeButton() {
+            var button = document.querySelector('.home-button');
+            button.classList.add('explode');
+            setTimeout(function() {
+                window.location.href = '/'; // Redirect after animation
+            }, 300); // Duration of the explosion animation
+        }
+    </script>
+</body>
+</html>

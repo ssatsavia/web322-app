@@ -1,0 +1,33 @@
+<!-- Items.hbs -->
+
+<div class="container">
+    <h2>Items</h2>
+    {{#if items}}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Price</th>
+                <th></th> <!-- New header column for the delete button -->
+            </tr>
+        </thead>
+        <tbody>
+            {{#each items}}
+            <tr>
+                <td>{{this.title}}</td>
+                <td>{{this.category}}</td>
+                <td>{{this.postDate}}</td>
+                <td>{{this.price}}</td>
+                <td>
+                    <a href="/items/delete/{{this.id}}" class="btn btn-danger">Remove</a> <!-- Delete button -->
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+    {{else}}
+    <p>No items found</p>
+    {{/if}}
+</div>
