@@ -1,32 +1,38 @@
 <div class="row">
     <div class="col-md-12">
-          <h2>Categories</h2>
-          <a href="/categories/add" class="btn btn-success pull-right">Add Category</a>
-          <hr />
-
-          <div class="table-responsive">
-        <table class="table">
-            <thead>
-            <tr>
-                <th>Category ID</th>
-                <th>Category Name</th>
-            </tr>
-            </thead>
-            <tbody>
-            {{#each categories}}
-                <tr>
-                    <td><a href="/Items?category={{id}}">{{id}}</a></td>
-                    <td><a href="/Items?category={{id}}">{{category}}</a></td>
-                </tr>
-            {{/each}}
-            </tbody>
-        </table>
+        <h2>Categories</h2>
+        <a href="/categories/add" class="btn btn-success pull-right">Add Category</a>
+        <hr />
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Category ID</th>
+                        <th>Category Name</th>
+                        <th></th> <!-- Header for the remove button column -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each categories}}
+                    <tr>
+                        <td><a href="/items?category={{this.id}}">{{this.id}}</a></td>
+                        <td><a href="/items?category={{this.id}}">{{this.category}}</a></td>
+                        <td>
+                            <a href="/categories/delete/{{this.id}}" class="btn btn-danger">Remove</a>
+                        </td>
+                    </tr>
+                    {{else}}
+                    <tr>
+                        <td colspan="3" class="text-center"><strong>No categories available</strong></td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
         </div>
-
+        {{#unless categories}}
+        <div class="col-md-12 text-center">
+            <strong>{{message}}</strong>
+        </div>
+        {{/unless}}
     </div>
-    {{#unless categories}}
-    <div class="col-md-12 text-center">
-        <strong>{{message}}</strong>
-    </div>
-    {{/unless}}
 </div>
