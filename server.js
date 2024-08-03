@@ -384,9 +384,5 @@ itemData.initialize()
     });
   })
   .catch((err) => {
-    console.error("Initialization failed:", err); // Log the actual error
-<<<<<<< HEAD
-  });
-=======
-  });
->>>>>>> c525f09 (updated server.js)
+    console.error("Initialization failed:", err); 
+  })
