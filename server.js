@@ -1,6 +1,6 @@
 /*********************************************************************************
 <<<<<<< HEAD
-*  WEB322 – Assignment 05
+*  WEB322 – Assignment 06
 =======
 *  WEB322 â€“ Assignment 05
 *  I declare that this assignment is my own work in accordance with Seneca  Academic Policy.  No part of this
@@ -16,6 +16,8 @@
 ********************************************************************************/ 
 
 const express = require('express');
+const authdata = require('auth-service.js'); // for assignment 6
+const clientSessions = require ('client-sessions'); // for assignment 6
 const path = require('path');
 const multer = require("multer");
 const cloudinary = require('cloudinary').v2;
@@ -88,6 +90,13 @@ app.use(function(req, res, next) {
     next();
 });
 
+// Middleware for client-sessions
+app.use(clientSessions({
+    cookieName: "session", // Cookie name dictates the key name added to the request object
+    secret: "yourSecretKey", // Secret key used to sign the session ID cookie
+    duration: 2 * 60 * 1000, // Duration of the session in milliseconds (e.g., 2 minutes)
+    activeDuration: 1000 * 60 // Extend the session by this many milliseconds if the session is still active (e.g., extend by 1 minute)
+}));
 // Routes
 
 app.get('/check-deps', (req, res) => {
@@ -309,4 +318,15 @@ storeService.initialize()
     .catch(error => {
         console.error('Failed to initialize data:', error);
         process.exit(1);
+    });
+
+storeData.initialize()
+     .then(authData.initialize)
+     .then(function(){
+        app.listen(HTTP_PORT, function(){
+            console.log("app listening on: " + HTTP_PORT)
+        });
+    })
+    .catch(function(err){
+        console.log("unable to start server: " + err);
     });
