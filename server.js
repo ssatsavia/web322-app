@@ -82,7 +82,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded data
 
-// Middleware to handle active route
+
 app.use(function(req, res, next) {
     let route = req.path.substring(1);
     app.locals.activeRoute = "/" + (isNaN(route.split('/')[1]) ? route.replace(/\/(?!.*)/, "") : route.replace(/\/(.*)/, ""));
@@ -90,16 +90,30 @@ app.use(function(req, res, next) {
     next();
 });
 
-// Middleware for client-sessions
+
 app.use(clientSessions({
     cookieName: "session", // Cookie name dictates the key name added to the request object
     secret: "yourSecretKey", // Secret key used to sign the session ID cookie
     duration: 2 * 60 * 1000, // Duration of the session in milliseconds (e.g., 2 minutes)
     activeDuration: 1000 * 60 // Extend the session by this many milliseconds if the session is still active (e.g., extend by 1 minute)
 }));
+app.use(function(req, res, next) {
+    res.locals.session = req.session;
+    next();
+});
+
 // Routes
 
-app.get('/check-deps', (req, res) => {
+
+function ensureLogin(req, res, next) {
+    if (!req.session.user) {
+        res.redirect('/login');
+    } else {
+        next();
+    }
+}
+
+app.get('/check-deps', ensureLogin, (req, res) => {
     const pgVersion = require('pg/package.json').version;
     const pgHstoreVersion = require('pg-hstore/package.json').version;
     res.send(`pg: ${pgVersion}, pg-hstore: ${pgHstoreVersion}`);
@@ -113,7 +127,7 @@ app.get('/about', (req, res) => {
     res.render('about', { title: "Sage'Store" });
 });
 
-app.get('/items/add', (req, res) => {
+app.get('/items/add', ensureLogin, (req, res) => {
     storeService.getCategories()
         .then((data) => {
             res.render('addItem', { categories: data, title: "Add Item" });
@@ -123,7 +137,7 @@ app.get('/items/add', (req, res) => {
         });
 });
 
-app.post('/items/add', upload.single('featureImage'), async (req, res) => {
+app.post('/items/add', ensureLogin, upload.single('featureImage'), async (req, res) => {
     if (req.file) {
         try {
             let result = await streamUpload(req);
@@ -163,7 +177,7 @@ function processItem(req, imageUrl, res) {
         });
 }
 
-app.get('/shop', (req, res) => {
+app.get('/shop', ensureLogin, (req, res) => {
     let viewData = {};
     storeService.getPublishedItems().then((items) => {
         viewData.items = items;
@@ -188,7 +202,7 @@ app.get('/shop', (req, res) => {
     });
 });
 
-app.get('/shop/:id', (req, res) => {
+app.get('/shop/:id', ensurelogin, (req, res) => {
     let viewData = {};
     storeService.getItemById(req.params.id).then((item) => {
         viewData.item = item;
@@ -205,7 +219,7 @@ app.get('/shop/:id', (req, res) => {
     });
 });
 
-app.get('/items', (req, res) => {
+app.get('/items',ensurelogin,  (req, res) => {
     const { category, minDate } = req.query;
     
     if (category) {
@@ -241,7 +255,7 @@ app.get('/items', (req, res) => {
     }
 });
 
-app.get('/item/:id', (req, res) => {
+app.get('/item/:id', ensurelogin, (req, res) => {
     const { id } = req.params;
 
     storeService.getItemById(id)
@@ -255,7 +269,7 @@ app.get('/item/:id', (req, res) => {
         .catch(err => res.status(500).render('404', { message: "Error retrieving item: " + err }));
 });
 
-app.get('/categories', (req, res) => {
+app.get('/categories', ensurelogin, (req, res) => {
     storeService.getCategories().then((categories) => {
         if (categories.length > 0) {
             res.render('categories', { categories });
@@ -267,7 +281,7 @@ app.get('/categories', (req, res) => {
     });
 });
 
-app.get('/categories/add', (req, res) => {
+app.get('/categories/add', ensurelogin, (req, res) => {
     res.render('addCategory', { title: "Add Category" });
 });
 
@@ -282,7 +296,7 @@ app.post('/categories/add', (req, res) => {
         });
 });
 
-app.get('/categories/delete/:id', (req, res) => {
+app.get('/categories/delete/:id', ensurelogin, (req, res) => {
     storeService.deleteCategoryById(req.params.id)
         .then(() => {
             res.redirect('/categories');
@@ -293,7 +307,7 @@ app.get('/categories/delete/:id', (req, res) => {
         });
 });
 
-app.get('/items/delete/:id', (req, res) => {
+app.get('/items/delete/:id',ensurelogin, (req, res) => {
     storeService.deletePostById(req.params.id)
         .then(() => {
             res.redirect('/items');
@@ -307,6 +321,62 @@ app.get('/items/delete/:id', (req, res) => {
 app.use((req, res) => {
     res.status(404).render('404');
 });
+
+// New routes
+
+app.get('/login', (req, res) => {
+    res.render('login', { title: "Login" });
+});
+
+app.get('/register', (req, res) => {
+    res.render('register', { title: "Register" });
+});
+
+app.post('/register', (req, res) => {
+    authData.registerUser(req.body)
+        .then(() => {
+            res.render('register', { successMessage: "User created" });
+        })
+        .catch(err => {
+            res.render('register', { 
+                errorMessage: err, 
+                userName: req.body.userName, 
+                title: "Register" 
+            });
+        });
+});
+
+app.post('/login', (req, res) => {
+    authData.checkUser(req.body)
+        .then((user) => {
+            req.session.user = {
+                userName: user.userName,  // Authenticated user's userName
+                email: user.email,        // Authenticated user's email
+                loginHistory: user.loginHistory // Authenticated user's loginHistory
+            };
+            res.redirect('/items');
+        })
+        .catch((err) => {
+            res.render('login', { 
+                errorMessage: err, 
+                userName: req.body.userName, 
+                title: "Login" 
+            });
+        });
+});
+
+app.get('/logout', (req, res) => {
+    req.session.reset();
+    res.redirect('/');
+});
+
+app.get('/userHistory', ensureLogin, (req, res) => {
+    res.render('userHistory', {
+        title: "User History",
+        user: req.session.user
+    });
+});
+
 
 // Initialize and start server
 storeService.initialize()
