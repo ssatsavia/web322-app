@@ -110,7 +110,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/about', (req, res) => {
-    res.render('about', { title: "Himanshu's Store" });
+    res.render('about', { title: "Sage'Store" });
 });
 
 app.get('/items/add', (req, res) => {
@@ -181,10 +181,10 @@ app.get('/shop', (req, res) => {
         return storeService.getCategories();
     }).then((categories) => {
         viewData.categories = categories;
-        res.render('shop', { title: "Himanshu's Store - Shop", data: viewData });
+        res.render('shop', { title: "Sage's Store - Shop", data: viewData });
     }).catch((err) => {
         viewData.message = "no results";
-        res.render('shop', { title: "Himanshu's Store - Shop", data: viewData });
+        res.render('shop', { title: "Sage's Store - Shop", data: viewData });
     });
 });
 
@@ -198,10 +198,10 @@ app.get('/shop/:id', (req, res) => {
         return storeService.getCategories();
     }).then((categories) => {
         viewData.categories = categories;
-        res.render('shop', { title: "Himanshu's Store - Shop", data: viewData });
+        res.render('shop', { title: "Sage's Store - Shop", data: viewData });
     }).catch((err) => {
         viewData.message = "no results";
-        res.render('shop', { title: "Himanshu's Store - Shop", data: viewData });
+        res.render('shop', { title: "Sage's Store - Shop", data: viewData });
     });
 });
 
