@@ -16,7 +16,7 @@
 ********************************************************************************/ 
 
 const express = require('express');
-const authdata = require('auth-service.js'); // for assignment 6
+const authData = require('./auth-service.js'); // for assignment 6
 const clientSessions = require ('client-sessions'); // for assignment 6
 const path = require('path');
 const multer = require("multer");
@@ -38,6 +38,16 @@ cloudinary.config({
 
 // Setup multer for memory storage
 const upload = multer();
+
+
+function ensureLogin(req, res, next) {
+    if (!req.session.user) {
+        res.redirect('/login');
+    } else {
+        next();
+    }
+}
+
 
 // Handlebars Configuration
 const handlebars = exphbs.create({
@@ -105,15 +115,8 @@ app.use(function(req, res, next) {
 // Routes
 
 
-function ensureLogin(req, res, next) {
-    if (!req.session.user) {
-        res.redirect('/login');
-    } else {
-        next();
-    }
-}
 
-app.get('/check-deps', ensureLogin, (req, res) => {
+app.get('/check-deps', (req, res) => {
     const pgVersion = require('pg/package.json').version;
     const pgHstoreVersion = require('pg-hstore/package.json').version;
     res.send(`pg: ${pgVersion}, pg-hstore: ${pgHstoreVersion}`);
@@ -202,7 +205,7 @@ app.get('/shop', ensureLogin, (req, res) => {
     });
 });
 
-app.get('/shop/:id', ensurelogin, (req, res) => {
+app.get('/shop/:id', ensureLogin, (req, res) => {
     let viewData = {};
     storeService.getItemById(req.params.id).then((item) => {
         viewData.item = item;
@@ -219,7 +222,7 @@ app.get('/shop/:id', ensurelogin, (req, res) => {
     });
 });
 
-app.get('/items',ensurelogin,  (req, res) => {
+app.get('/items',ensureLogin,  (req, res) => {
     const { category, minDate } = req.query;
     
     if (category) {
@@ -255,7 +258,7 @@ app.get('/items',ensurelogin,  (req, res) => {
     }
 });
 
-app.get('/item/:id', ensurelogin, (req, res) => {
+app.get('/item/:id', ensureLogin, (req, res) => {
     const { id } = req.params;
 
     storeService.getItemById(id)
@@ -269,7 +272,7 @@ app.get('/item/:id', ensurelogin, (req, res) => {
         .catch(err => res.status(500).render('404', { message: "Error retrieving item: " + err }));
 });
 
-app.get('/categories', ensurelogin, (req, res) => {
+app.get('/categories', ensureLogin, (req, res) => {
     storeService.getCategories().then((categories) => {
         if (categories.length > 0) {
             res.render('categories', { categories });
@@ -281,11 +284,11 @@ app.get('/categories', ensurelogin, (req, res) => {
     });
 });
 
-app.get('/categories/add', ensurelogin, (req, res) => {
+app.get('/categories/add', ensureLogin, (req, res) => {
     res.render('addCategory', { title: "Add Category" });
 });
 
-app.post('/categories/add', (req, res) => {
+app.post('/categories/add', ensureLogin, (req, res) => {
     storeService.addCategory(req.body)
         .then(() => {
             res.redirect('/categories');
@@ -296,7 +299,7 @@ app.post('/categories/add', (req, res) => {
         });
 });
 
-app.get('/categories/delete/:id', ensurelogin, (req, res) => {
+app.get('/categories/delete/:id', ensureLogin, (req, res) => {
     storeService.deleteCategoryById(req.params.id)
         .then(() => {
             res.redirect('/categories');
@@ -307,7 +310,7 @@ app.get('/categories/delete/:id', ensurelogin, (req, res) => {
         });
 });
 
-app.get('/items/delete/:id',ensurelogin, (req, res) => {
+app.get('/items/delete/:id',ensureLogin, (req, res) => {
     storeService.deletePostById(req.params.id)
         .then(() => {
             res.redirect('/items');
@@ -324,15 +327,15 @@ app.use((req, res) => {
 
 // New routes
 
-app.get('/login', (req, res) => {
+app.get('/login',ensureLogin,  (req, res) => {
     res.render('login', { title: "Login" });
 });
 
-app.get('/register', (req, res) => {
+app.get('/register', ensureLogin, (req, res) => {
     res.render('register', { title: "Register" });
 });
 
-app.post('/register', (req, res) => {
+app.post('/register', ensureLogin, (req, res) => {
     authData.registerUser(req.body)
         .then(() => {
             res.render('register', { successMessage: "User created" });
@@ -346,7 +349,7 @@ app.post('/register', (req, res) => {
         });
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', ensureLogin, (req, res) => {
     authData.checkUser(req.body)
         .then((user) => {
             req.session.user = {
@@ -365,7 +368,7 @@ app.post('/login', (req, res) => {
         });
 });
 
-app.get('/logout', (req, res) => {
+app.get('/logout', ensureLogin, (req, res) => {
     req.session.reset();
     res.redirect('/');
 });
@@ -380,6 +383,7 @@ app.get('/userHistory', ensureLogin, (req, res) => {
 
 // Initialize and start server
 storeService.initialize()
+    .then(authData.initialize)  
     .then(() => {
         app.listen(PORT, () => {
             console.log(`Listening on port ${PORT}`);
@@ -390,7 +394,7 @@ storeService.initialize()
         process.exit(1);
     });
 
-storeData.initialize()
+/*storeData.initialize()
      .then(authData.initialize)
      .then(function(){
         app.listen(HTTP_PORT, function(){
@@ -400,3 +404,4 @@ storeData.initialize()
     .catch(function(err){
         console.log("unable to start server: " + err);
     });
+    */

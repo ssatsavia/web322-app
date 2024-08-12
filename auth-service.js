@@ -23,7 +23,7 @@ const userScheme = new Schema({
 
 let User; // to be defined on new connection (see initialize)
 
-// const User = mongoose.model('User', userSchema);
+
 
 // Function to initialize the service (e.g., connecting to the database)
 module.exports.initialize = function () {
