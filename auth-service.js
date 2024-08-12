@@ -29,7 +29,7 @@ let User; // to be defined on new connection (see initialize)
 // Function to initialize the service (e.g., connecting to the database)
 module.exports.initialize = function () {
     return new Promise(function (resolve, reject) {
-        let db = mongoose.createConnection("mongodb+srv://ssatsavia:<Tiamodeepa@89>@web322.b4dih.mongodb.net/"); // check this once again before submitting 
+        let db = mongoose.createConnection("mongodb+srv://sagesatsavia:xgzEDbjWVh3o1OR0@web322.xwyr4.mongodb.net/"); // check this once again before submitting 
 
         db.on('error', (err)=>{
             reject(err); // reject the promise with the provided error
