@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
@@ -28,7 +29,7 @@ let User; // to be defined on new connection (see initialize)
 // Function to initialize the service (e.g., connecting to the database)
 module.exports.initialize = function () {
     return new Promise(function (resolve, reject) {
-        let db = mongoose.createConnection("connectionString");
+        let db = mongoose.createConnection("mongodb+srv://ssatsavia:<Tiamodeepa@89>@web322.b4dih.mongodb.net/"); // check this once again before submitting 
 
         db.on('error', (err)=>{
             reject(err); // reject the promise with the provided error
@@ -77,20 +78,37 @@ module.exports.registerUser = function(userData) {
                 reject('Error checking user existence: ' + err);
             });
     });
-}
+};
 
 // Function to check if a user exists
-module.exports.checkUser = function(username) {
+module.exports.checkUser = function(userData) {
     return new Promise((resolve, reject) => {
-        User.findOne({ username: username })
+        // Find the user in the database by username
+        User.findOne({ username: userData.username })
             .then((user) => {
-                resolve(user);
+                if (!user) {
+                    reject('User not found');
+                } else {
+                    // Compare the provided password with the stored hashed password
+                    bcrypt.compare(userData.password, user.password)
+                        .then((result) => {
+                            if (result === true) {
+                                resolve('User authenticated successfully');
+                            } else {
+                                reject('Incorrect Password for user: ' + userData.username);
+                            }
+                        })
+                        .catch((err) => {
+                            reject('Error comparing passwords: ' + err);
+                        });
+                }
             })
             .catch((err) => {
                 reject('Error finding user: ' + err);
             });
     });
-}
+};
+
 // Function to validate user credentials
 module.exports.checkUserValid = function(userData) {
     return new Promise((resolve, reject) => {
