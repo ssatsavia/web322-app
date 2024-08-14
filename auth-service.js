@@ -15,8 +15,8 @@ const userSchema = new Schema({
 let User; // To be defined on new connection
 
 // Initialize the module.exports object
-//module.exports = {};
-module.exports = User; 
+module.exports = {};
+
 // Define the initialize method
 module.exports.initialize = function () {
     return new Promise((resolve, reject) => {
