@@ -31,6 +31,7 @@ cloudinary.config({
     secure: true,
   });
   
+
 const upload = multer(); // No disk storage, using memory storage
 
 // Set up express-handlebars
