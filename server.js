@@ -8,7 +8,7 @@
 *
 *  Vercel Web App URL:  https://web322-nxhjspwjd-ssatsavias-projects.vercel.app/shop
 * 
-*  GitHub Repository URL: 
+*  GitHub Repository URL: https://github.com/ssatsavia/web322-app.git
 *
 ********************************************************************************/ 
 
