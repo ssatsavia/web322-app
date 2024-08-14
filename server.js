@@ -6,7 +6,7 @@
 * 
 *  Name: Sage Satsavia
 *
-*  Vercel Web App URL: 
+*  Vercel Web App URL:  https://web322-nxhjspwjd-ssatsavias-projects.vercel.app/shop
 * 
 *  GitHub Repository URL: 
 *
