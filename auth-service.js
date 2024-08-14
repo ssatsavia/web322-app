@@ -1,138 +1,85 @@
-const bcrypt = require('bcryptjs');
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-
-const userSchema = new Schema({
-    propertyName1: {
-        type: String, // Mongoose Schema Type
-        required: true
-    },
-    propertyName2: {
-        type: Number, // Mongoose Schema Type
-        required: true
-    },
-    propertyName3: {
-        type: Boolean, // Mongoose Schema Type
-        default: false
-    },
-    propertyName4: {
-        type: Date, // Mongoose Schema Type
-        default: Date.now
-    }
-    // will add more properties as needed
-});
-
-let User; // to be defined on new connection (see initialize)
 
 
-
-// Function to initialize the service (e.g., connecting to the database)
-module.exports.initialize = function () {
-    return new Promise(function (resolve, reject) {
-        let db = mongoose.createConnection("mongodb+srv://sagesatsavia:xgzEDbjWVh3o1OR0@web322.xwyr4.mongodb.net/"); // check this once again before submitting 
-
-        db.on('error', (err)=>{
-            reject(err); // reject the promise with the provided error
+        const mongoose = require('mongoose');
+        let Schema = mongoose.Schema;
+        const bcrypt = require('bcryptjs');
+        
+        const userSchema = new Schema({
+            userName: { type: String, unique: true },
+            password: String,
+            email: String,
+            loginHistory: [{
+                dateTime: Date,
+                userAgent: String
+            }]
         });
-        db.once('open', ()=>{
-           User = db.model("users", userSchema);
-           resolve();
-        });
-    });
-};
-
-
-// Function to register a user
-module.exports.registerUser = function(userData) {
-    return new Promise((resolve, reject) => {
-        // Check if user already exists
-        checkUser(userData.username)
-            .then((existingUser) => {
-                if (existingUser) {
-                    reject('User already exists');
+        
+        let User; // To be defined on new connection
+        
+        module.exports.initialize = function () {
+            return new Promise((resolve, reject) => {
+                let db = mongoose.createConnection("mongodb+srv://sagesatsavia:xgzEDbjWVh3o1OR0@web322.xwyr4.mongodb.net/"); // check this once again before submitting 
+        
+                db.on('error', (err) => {
+                    reject(err);
+                });
+        
+                db.once('open', () => {
+                    User = db.model("users", userSchema);
+                    resolve();
+                });
+            });
+        };
+        
+        module.exports.registerUser = function (userData) {
+            return new Promise((resolve, reject) => {
+                if (userData.password !== userData.password2) {
+                    reject("Passwords do not match");
                 } else {
-                    // Hash the password before saving
-                    bcrypt.hash(userData.password, 10)
-                        .then((hashedPassword) => {
-                            // Create and save the new user
-                            const newUser = new User({
-                                username: userData.username,
-                                password: hashedPassword,
-                                email: userData.email
+                    bcrypt.hash(userData.password, 10).then((hash) => {
+                        userData.password = hash;
+                        let newUser = new User(userData);
+                        newUser.save()
+                            .then(() => resolve())
+                            .catch((err) => {
+                                if (err.code === 11000) { // Handle unique constraint error (duplicate userName)
+                                    reject("User Name already taken");
+                                } else {
+                                    reject(`There was an error creating the user: ${err}`);
+                                }
                             });
-
-                            newUser.save()
-                                .then(() => {
-                                    resolve('User registered successfully');
-                                })
-                                .catch((err) => {
-                                    reject('Error registering user: ' + err);
-                                });
-                        })
-                        .catch((err) => {
-                            reject('Error hashing password: ' + err);
-                        });
+                    }).catch(err => reject("There was an error encrypting the password"));
                 }
-            })
-            .catch((err) => {
-                reject('Error checking user existence: ' + err);
             });
-    });
-};
-
-// Function to check if a user exists
-module.exports.checkUser = function(userData) {
-    return new Promise((resolve, reject) => {
-        // Find the user in the database by username
-        User.findOne({ username: userData.username })
-            .then((user) => {
-                if (!user) {
-                    reject('User not found');
-                } else {
-                    // Compare the provided password with the stored hashed password
-                    bcrypt.compare(userData.password, user.password)
-                        .then((result) => {
-                            if (result === true) {
-                                resolve('User authenticated successfully');
-                            } else {
-                                reject('Incorrect Password for user: ' + userData.username);
-                            }
-                        })
-                        .catch((err) => {
-                            reject('Error comparing passwords: ' + err);
-                        });
-                }
-            })
-            .catch((err) => {
-                reject('Error finding user: ' + err);
+        };
+        
+        module.exports.checkUser = function (userData) {
+            return new Promise((resolve, reject) => {
+                User.findOne({ userName: userData.userName }).exec()
+                    .then(user => {
+                        if (!user) {
+                            reject(`Unable to find user: ${userData.userName}`);
+                        } else {
+                            bcrypt.compare(userData.password, user.password).then(result => {
+                                if (result) {
+                                    user.loginHistory.push({
+                                        dateTime: new Date(),
+                                        userAgent: userData.userAgent
+                                    });
+        
+                                    User.updateOne(
+                                        { userName: user.userName },
+                                        { $set: { loginHistory: user.loginHistory } }
+                                    ).exec().then(() => {
+                                        resolve(user);
+                                    }).catch(err => reject(`There was an error verifying the user: ${err}`));
+                                } else {
+                                    reject(`Incorrect Password for user: ${userData.userName}`);
+                                }
+                            });
+                        }
+                    }).catch(err => {
+                        reject(`Unable to find user: ${userData.userName}`);
+                    });
             });
-    });
-};
-
-// Function to validate user credentials
-module.exports.checkUserValid = function(userData) {
-    return new Promise((resolve, reject) => {
-        checkUser(userData.username)
-            .then((user) => {
-                if (!user) {
-                    reject('User not found');
-                } else {
-                    // Compare the provided password with the stored hashed password
-                    bcrypt.compare(userData.password, user.password)
-                        .then((isMatch) => {
-                            if (isMatch) {
-                                resolve('User authenticated successfully');
-                            } else {
-                                reject('Invalid credentials');
-                            }
-                        })
-                        .catch((err) => {
-                            reject('Error comparing passwords: ' + err);
-                        });
-                }
-            })
-            .catch((err) => {
-                reject('Error checking user: ' + err);
-            });
-    });
-}
+        };
