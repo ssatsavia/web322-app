@@ -14,7 +14,6 @@
 
 const express = require('express');
 const app = express();
-const HTTP_PORT = process.env.PORT || 8080;
 const path = require('path');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
@@ -22,7 +21,9 @@ const streamifier = require('streamifier');
 const storeService = require('./store-service');
 const authData = require('./auth-service');
 const clientSessions = require('client-sessions');
+module.exports = app;
 
+const HTTP_PORT = process.env.PORT || 8080;
 
 cloudinary.config({
     cloud_name: "dutprg1nu",

@@ -15,6 +15,7 @@
         });
         
         let User; // To be defined on new connection
+        module.exports = user; 
         
         module.exports.initialize = function () {
             return new Promise((resolve, reject) => {
